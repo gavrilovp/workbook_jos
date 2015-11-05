@@ -59,6 +59,7 @@ relocated:
 	# Maybe it is time to put NULL to some register before making the first call?
 	# Set the stack pointer
 	movl	$(bootstacktop),%esp
+  movl $0, %ebp
 
 	# now to C code
 	call	i386_init
