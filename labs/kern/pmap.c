@@ -526,8 +526,24 @@ page_decref(struct Page* pp)
 pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
-	// Fill this function in
-	return NULL;
+	pde_t* dentry = pgdir + PDX(va);
+	pte_t* pgtbl;
+	struct Page *page;
+
+	if (*dentry & PTE_P) {
+		pgtbl = (pte_t *)KADDR(PTE_ADDR(*dentry));
+	} else if (create) {
+		if (page_alloc(&page)) {
+			return NULL;
+		}
+		page->pp_ref = 1;
+		pgtbl = page2kva(page);
+		memset(pgtbl, 0, PGSIZE);
+		*dentry = page2pa(page) | PTE_P | PTE_W | PTE_U;
+	} else {
+		return NULL;
+	}
+	return pgtbl + PTX(va);
 }
 
 //
