@@ -571,7 +571,28 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 int
 page_insert(pde_t *pgdir, struct Page *pp, void *va, int perm) 
 {
-	// Fill this function in
+	pte_t *tentry;
+	physaddr_t pa;
+
+	assert(PTE_ADDR(perm) == 0);
+
+	tentry = pgdir_walk(pgdir, va, 1);
+	if (tentry == NULL) {
+		return -E_NO_MEM;
+	}
+	pa = page2pa(pp);
+	
+	if (*tentry & PTE_P) {
+		// same page re-inserted
+		if (PTE_ADDR(*tentry) == pa) {
+			*tentry = pa | PTE_P | perm;
+			return 0;
+		}
+		page_remove(pgdir, va);
+	}
+	
+	*tentry = pa | PTE_P | perm;
+	pp->pp_ref++;
 	return 0;
 }
 
@@ -618,8 +639,11 @@ boot_map_segment(pde_t *pgdir, uintptr_t la, size_t size, physaddr_t pa, int per
 struct Page *
 page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
-	// Fill this function in
-	return NULL;
+	pte_t *tentry = pgdir_walk(pgdir, va, 0);
+	if (tentry == NULL) return NULL;
+	if (!(*tentry & PTE_P)) return NULL;
+	if (pte_store != NULL) *pte_store = tentry;
+	return pa2page(PTE_ADDR(*tentry));
 }
 
 //
@@ -640,7 +664,12 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 void
 page_remove(pde_t *pgdir, void *va)
 {
-	// Fill this function in
+	pte_t *tentry;
+	struct Page *page = page_lookup(pgdir, va, &tentry);
+	if (page == NULL) return;
+	*tentry &= ~PTE_P;
+	tlb_invalidate(pgdir, va);
+	page_decref(page);
 }
 
 //
