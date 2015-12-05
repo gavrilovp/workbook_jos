@@ -147,9 +147,6 @@ i386_vm_init(void)
 	uint32_t cr0;
 	size_t n;
 
-	// Delete this line:
-	panic("i386_vm_init: This function is not finished\n");
-
 	//////////////////////////////////////////////////////////////////////
 	// create initial page directory.
 	pgdir = boot_alloc(PGSIZE, PGSIZE);
@@ -175,9 +172,7 @@ i386_vm_init(void)
 	// The kernel uses this structure to keep track of physical pages;
 	// 'npage' equals the number of physical pages in memory.  User-level
 	// programs will get read-only access to the array as well.
-	// You must allocate the array yourself.
-	// Your code goes here: 
-
+	pages = boot_alloc(sizeof(struct Page) * npage, PGSIZE);
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -186,7 +181,7 @@ i386_vm_init(void)
 	// particular, we can now map memory using boot_map_segment or page_insert
 	page_init();
 
-        check_page_alloc();
+	check_page_alloc();
 
 	page_check();
 
