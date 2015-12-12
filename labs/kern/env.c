@@ -444,8 +444,12 @@ env_run(struct Env *e)
 	//	and make sure you have set the relevant parts of
 	//	e->env_tf to sensible values.
 	
-	// LAB 3: Your code here.
+	e->env_runs++;
+	curenv = e;
 
-	panic("env_run not yet implemented");
+	if (rcr3() != e->env_cr3)
+		lcr3(e->env_cr3);
+
+	env_pop_tf(&e->env_tf);
 }
 
