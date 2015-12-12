@@ -276,18 +276,44 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 	//  directly into the virtual addresses stored in the ELF binary.
 	//  So which page directory should be in force during
 	//  this function?
-	//
+
+	struct Elf *elf = (struct Elf *)binary;
+	struct Proghdr *ph, *eph;
+
+	assert(elf->e_magic == ELF_MAGIC);
+
+	ph = (struct Proghdr *)((uint8_t *)binary + elf->e_phoff);
+	eph = ph + elf->e_phnum;
+
+	lcr3(e->env_cr3);
+	for (; ph < eph; ph++) {
+		if (ph->p_type != ELF_PROG_LOAD)
+			continue;
+
+		assert(ph->p_filesz <= ph->p_memsz);
+		segment_alloc(e, (void *)ph->p_va, ph->p_memsz);
+
+		memmove((void *)ph->p_va, binary + ph->p_offset, ph->p_filesz);
+		memset((void *)(ph->p_va + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz);
+	}
+	lcr3(boot_cr3);
+	
 	// Hint:
 	//  You must also do something with the program's entry point,
 	//  to make sure that the environment starts executing there.
 	//  What?  (See env_run() and env_pop_tf() below.)
-
-	// LAB 3: Your code here.
+	e->env_tf.tf_eip = elf->e_entry; 
 
 	// Now map one page for the program's initial stack
 	// at virtual address USTACKTOP - PGSIZE.
+	struct Page *stack;
+	int r;
 
-	// LAB 3: Your code here.
+	if ((r = page_alloc(&stack)) != 0)
+		panic("page_alloc failed: %e", r);
+
+	if ((r = page_insert(e->env_pgdir, stack, (void *)(USTACKTOP - PGSIZE), PTE_U | PTE_W)) != 0)
+		panic("page_insert failed: %e");
 }
 
 //
