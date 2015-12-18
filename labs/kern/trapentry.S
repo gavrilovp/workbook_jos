@@ -38,12 +38,41 @@
 .text
 
 /*
- * Lab 3: Your code here for generating entry points for the different traps.
+ * Generating entry points for the different traps.
  */
 
+TRAPHANDLER_NOEC(inthandle_divide, T_DIVIDE)
+TRAPHANDLER_NOEC(inthandle_debug, T_DEBUG)
+TRAPHANDLER_NOEC(inthandle_nmi, T_NMI)
+TRAPHANDLER_NOEC(inthandle_brkpt, T_BRKPT)
+TRAPHANDLER_NOEC(inthandle_oflow, T_OFLOW)
+TRAPHANDLER_NOEC(inthandle_bound, T_BOUND)
+TRAPHANDLER_NOEC(inthandle_illop, T_ILLOP)
+TRAPHANDLER_NOEC(inthandle_device, T_DEVICE)
+TRAPHANDLER(inthandle_dblflt, T_DBLFLT)
+
+TRAPHANDLER(inthandle_tss, T_TSS)
+TRAPHANDLER(inthandle_segnp, T_SEGNP)
+TRAPHANDLER(inthandle_stack, T_STACK)
+TRAPHANDLER(inthandle_gpflt, T_GPFLT)
+TRAPHANDLER(inthandle_pgflt, T_PGFLT)
+
+TRAPHANDLER_NOEC(inthandle_fperr, T_FPERR)
+TRAPHANDLER_NOEC(inthandle_align, T_ALIGN)
+TRAPHANDLER_NOEC(inthandle_mchk, T_MCHK)
+TRAPHANDLER_NOEC(inthandle_simderr, T_SIMDERR)
+
+TRAPHANDLER_NOEC(inthandle_syscall, T_SYSCALL) 
+TRAPHANDLER_NOEC(inthandle_default, T_DEFAULT)
 
 
-/*
- * Lab 3: Your code here for _alltraps
- */
-	
+_alltraps:
+  pushl %ds
+  pushl %es
+  pushal
+  movw $GD_KD, %ax
+  movw %ax, %ds
+  movw %ax, %es
+  pushl %esp
+  movl $0, %ebp
+  call trap
