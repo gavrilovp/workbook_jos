@@ -61,7 +61,7 @@ idt_init(void)
 	SETGATE(idt[0], 0, GD_KT, inthandle_divide, 0);
 	SETGATE(idt[1], 0, GD_KT, inthandle_debug, 0);
 	SETGATE(idt[2], 0, GD_KT, inthandle_nmi, 0);
-	SETGATE(idt[3], 0, GD_KT, inthandle_brkpt, 0);
+	SETGATE(idt[3], 0, GD_KT, inthandle_brkpt, 3);
 	SETGATE(idt[4], 0, GD_KT, inthandle_oflow, 0);
 	SETGATE(idt[5], 0, GD_KT, inthandle_bound, 0);
 	SETGATE(idt[6], 0, GD_KT, inthandle_illop, 0);
@@ -132,8 +132,11 @@ static void
 trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
-	// LAB 3: Your code here.
-	
+	if (tf->tf_trapno == T_PGFLT) {
+		page_fault_handler(tf);
+		return;
+	}
+
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);

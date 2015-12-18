@@ -44,6 +44,7 @@ i386_init(void)
 #else
 	// Touch all you want.
 	ENV_CREATE(user_hello);
+	/* ENV_CREATE(user_divzero); */
 #endif // TEST*
 
 
