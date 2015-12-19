@@ -146,6 +146,7 @@ trap_dispatch(struct Trapframe *tf)
 	case T_SYSCALL:
 		tf->tf_regs.reg_eax = syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx, tf->tf_regs.reg_ecx,
 																	tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
+		return;
 	}
 	// Handle clock interrupts.
 	// LAB 4: Your code here.
@@ -159,7 +160,6 @@ trap_dispatch(struct Trapframe *tf)
 
 		return;
 	}
-
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
